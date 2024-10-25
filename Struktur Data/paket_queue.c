@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX 50
+#define MAX 5
 
 typedef struct
 {
     int id;
     char nama[30];
-    char jenisPaket[50];
-    char jenisKirim[50];
+    char jenisPaket[10];
+    char jenisKirim[20];
 } Pelanggan;
 
 typedef struct
@@ -81,7 +81,8 @@ void displayQueue(Queue *q)
         printf("Antrian pelanggan:\n");
         for (int i = q->front; i <= q->rear; i++)
         {
-            printf("Nomer Antrian: %d, Pengirim: %s, Jenis Paket: %s Jenis Pengiriman: %s\n", q->pelanggan[i].id, q->pelanggan[i].nama, q->pelanggan[i].jenisPaket, q->pelanggan[i].jenisKirim);
+            printf("Nomer Antrian: %d, Pengirim: %s, Jenis Paket: %s, Jenis Pengiriman: %s\n",
+                   q->pelanggan[i].id, q->pelanggan[i].nama, q->pelanggan[i].jenisPaket, q->pelanggan[i].jenisKirim);
         }
     }
 }
