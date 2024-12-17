@@ -80,15 +80,15 @@ int getBalance(struct Pasien *node)
 }
 
 // Fungsi menambahkan pasien ke AVL
-struct Pasien *insertPasien(struct Pasien *root, int NRM, char nama[], int umur, char alamat[])
+struct Pasien *insertAVL(struct Pasien *root, int NRM, char nama[], int umur, char alamat[])
 {
     if (root == NULL)
         return createPasien(NRM, nama, umur, alamat);
 
     if (NRM < root->NRM)
-        root->left = insertPasien(root->left, NRM, nama, umur, alamat);
+        root->left = insertAVL(root->left, NRM, nama, umur, alamat);
     else if (NRM > root->NRM)
-        root->right = insertPasien(root->right, NRM, nama, umur, alamat);
+        root->right = insertAVL(root->right, NRM, nama, umur, alamat);
     else
         return root; // NRM sudah ada
 
@@ -119,6 +119,29 @@ struct Pasien *insertPasien(struct Pasien *root, int NRM, char nama[], int umur,
     return root;
 }
 
+// Fungsi menambahkan pasien ke BST
+struct Pasien *insertBST(struct Pasien *root, int NRM, char nama[], int umur, char alamat[])
+{
+    if (root == NULL)
+        return createPasien(NRM, nama, umur, alamat);
+
+    if (NRM < root->NRM)
+        root->left = insertBST(root->left, NRM, nama, umur, alamat);
+    else if (NRM > root->NRM)
+        root->right = insertBST(root->right, NRM, nama, umur, alamat);
+
+    return root;
+}
+
+// Fungsi untuk mencari node terkecil pada subtree
+struct Pasien *minValueNode(struct Pasien *node)
+{
+    struct Pasien *current = node;
+    while (current->left != NULL)
+        current = current->left;
+    return current;
+}
+
 // Fungsi Mencari pasien berdasarkan NRM
 struct Pasien *searchPasien(struct Pasien *root, int NRM)
 {
@@ -131,25 +154,16 @@ struct Pasien *searchPasien(struct Pasien *root, int NRM)
     return searchPasien(root->right, NRM);
 }
 
-// Fungsi untuk mencari node terkecil
-struct Pasien *minValueNode(struct Pasien *node)
-{
-    struct Pasien *current = node;
-    while (current->left != NULL)
-        current = current->left;
-    return current;
-}
-
 // Fungsi menghapus pasien
-struct Pasien *deletePasien(struct Pasien *root, int NRM)
+struct Pasien *deletePasien(struct Pasien *root, int NRM, int isAVL)
 {
     if (root == NULL)
         return root;
 
     if (NRM < root->NRM)
-        root->left = deletePasien(root->left, NRM);
+        root->left = deletePasien(root->left, NRM, isAVL);
     else if (NRM > root->NRM)
-        root->right = deletePasien(root->right, NRM);
+        root->right = deletePasien(root->right, NRM, isAVL);
     else
     {
         // Node satu atau tanpa anak
@@ -171,43 +185,66 @@ struct Pasien *deletePasien(struct Pasien *root, int NRM)
         {
             // Node dua anak
             struct Pasien *temp = minValueNode(root->right);
-
             root->NRM = temp->NRM;
             strcpy(root->nama, temp->nama);
             root->umur = temp->umur;
             strcpy(root->alamat, temp->alamat);
-
-            root->right = deletePasien(root->right, temp->NRM);
+            root->right = deletePasien(root->right, temp->NRM, isAVL);
         }
     }
 
     if (root == NULL)
         return root;
 
-    // Update tinggi node
-    root->height = 1 + max(getHeight(root->left), getHeight(root->right));
-
-    // Periksa keseimbangan
-    int balance = getBalance(root);
-
-    if (balance > 1 && getBalance(root->left) >= 0)
-        return rotateRight(root);
-
-    if (balance > 1 && getBalance(root->left) < 0)
+    if (isAVL)
     {
-        root->left = rotateLeft(root->left);
-        return rotateRight(root);
+        // Update tinggi node
+        root->height = 1 + max(getHeight(root->left), getHeight(root->right));
+
+        // Periksa keseimbangan
+        int balance = getBalance(root);
+
+        if (balance > 1 && getBalance(root->left) >= 0)
+            return rotateRight(root);
+
+        if (balance > 1 && getBalance(root->left) < 0)
+        {
+            root->left = rotateLeft(root->left);
+            return rotateRight(root);
+        }
+
+        if (balance < -1 && getBalance(root->right) <= 0)
+            return rotateLeft(root);
+
+        if (balance < -1 && getBalance(root->right) < 0)
+        {
+            root->right = rotateRight(root->right);
+            return rotateLeft(root);
+        }
     }
 
-    if (balance < -1 && getBalance(root->right) <= 0)
-        return rotateLeft(root);
+    return root;
+}
 
-    if (balance < -1 && getBalance(root->right) < 0)
+// Fungsi menyimpan data ke file
+void saveToFile(struct Pasien *root, FILE *file)
+{
+    if (root != NULL)
     {
-        root->right = rotateRight(root->right);
-        return rotateLeft(root);
+        fwrite(root, sizeof(struct Pasien), 1, file);
+        saveToFile(root->left, file);
+        saveToFile(root->right, file);
     }
+}
 
+// Fungsi memuat data
+struct Pasien *loadFromFile(FILE *file)
+{
+    struct Pasien temp, *root = NULL;
+    while (fread(&temp, sizeof(struct Pasien), 1, file))
+    {
+        root = insertAVL(root, temp.NRM, temp.nama, temp.umur, temp.alamat);
+    }
     return root;
 }
 
@@ -217,8 +254,7 @@ void displayPasien(struct Pasien *root)
     if (root != NULL)
     {
         displayPasien(root->left);
-        printf("NRM : %d, Nama : %s, Umur : %d, Alamat : %s\n",
-               root->NRM, root->nama, root->umur, root->alamat);
+        printf("| %-5d | %-22s | %-4d | %-30s |\n", root->NRM, root->nama, root->umur, root->alamat);
         displayPasien(root->right);
     }
 }
@@ -227,13 +263,29 @@ void displayPasien(struct Pasien *root)
 int main()
 {
     struct Pasien *root = NULL;
-    int choice, NRM, umur;
+    FILE *file;
+
+    file = fopen("pasien.dat", "rb");
+    if (file != NULL)
+    {
+        root = loadFromFile(file);
+        fclose(file);
+    }
+
+    int choice, NRM, umur, treeChoice;
     char nama[50], alamat[100];
+
+    printf("\nSelamat Datang di Pelayanan Puskesmas\n");
+    printf("Masukkan Pilihan\n");
+    printf("1. BST\n");
+    printf("2. AVL Tree\n");
+    printf("Pilihan :");
+    scanf("%d", &treeChoice);
 
     do
     {
-        printf("\n=== Selamat Datang di Pelayanan Puskesmas===");
-        printf("\n=== Menu===\n");
+
+        printf("Menu\n");
         printf("1. Tambah Pasien\n");
         printf("2. Tampilkan Pasien\n");
         printf("3. Cari Pasien\n");
@@ -256,38 +308,69 @@ int main()
             getchar();
             printf("Masukkan Nama : ");
             fgets(nama, sizeof(nama), stdin);
-            nama[strcspn(nama, "\n")] = 0;
+            if (nama[strcspn(nama, "\n")] == '\n')
+                nama[strcspn(nama, "\n")] = 0;
+
             printf("Masukkan Usia : ");
-            scanf("%d", &umur);
+            while (scanf("%d", &umur) != 1)
+            {
+                printf("Input tidak valid. Masukkan angka: ");
+                while (getchar() != '\n')
+                    ;
+            }
             getchar();
+
             printf("Masukkan Alamat : ");
             fgets(alamat, sizeof(alamat), stdin);
-            alamat[strcspn(alamat, "\n")] = 0;
-            root = insertPasien(root, NRM, nama, umur, alamat);
+            if (alamat[strcspn(alamat, "\n")] == '\n')
+                alamat[strcspn(alamat, "\n")] = 0;
+
+            if (treeChoice == 1)
+                root = insertBST(root, NRM, nama, umur, alamat);
+            else
+                root = insertAVL(root, NRM, nama, umur, alamat);
             printf("Pasien berhasil ditambahkan.\n");
             break;
         case 2:
             printf("Data Pasien:\n");
+            printf("--------------------------------------------------------------------------\n");
+            printf("|  NRM  |          Nama          | Umur |            Alamat              |\n");
+            printf("--------------------------------------------------------------------------\n");
             displayPasien(root);
+            printf("--------------------------------------------------------------------------\n");
             break;
         case 3:
             printf("Masukkan NRM: ");
             scanf("%d", &NRM);
             struct Pasien *found = searchPasien(root, NRM);
-            if (found)
-                printf("Pasen ditemukan: NRM: %d, Nama: %s, Umur: %d, Alamat: %s\n",
-                       found->NRM, found->nama, found->umur, found->alamat);
-            else
+            if (found == NULL)
                 printf("Pasien tidak ditemukan.\n");
+
+            else
+                printf("Pasien ditemukan: NRM: %d, Nama: %s, Umur: %d, Alamat: %s\n",
+                       found->NRM, found->nama, found->umur, found->alamat);
             break;
         case 4:
-            printf("Masukkan NRM: ");
+            printf("Masukkan NRM yang akan dihapus: ");
             scanf("%d", &NRM);
-            root = deletePasien(root, NRM);
-            printf("Pasien berhasil dihapus.\n");
+            if (searchPasien(root, NRM) == NULL)
+            {
+                printf("Pasien dengan NRM %d tidak ditemukan.\n", NRM);
+            }
+            else
+            {
+                root = deletePasien(root, NRM, treeChoice == 2);
+                printf("Pasien dengan NRM %d berhasil dihapus.\n", NRM);
+            }
             break;
         case 5:
-            printf("Keluar dari program\n");
+            printf("Menyimpan data & Keluar dari program..\n");
+            file = fopen("pasien.dat", "wb");
+            if (file != NULL)
+            {
+                saveToFile(root, file);
+                fclose(file);
+            }
             break;
         default:
             printf("Pilihan tidak valid\n");
