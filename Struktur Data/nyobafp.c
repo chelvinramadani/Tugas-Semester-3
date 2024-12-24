@@ -227,6 +227,35 @@ struct Pasien *deletePasien(struct Pasien *root, int NRM, int isAVL)
     return root;
 }
 
+// Fungsi menyimpan data ke file
+void saveToFile(struct Pasien *root, FILE *file)
+{
+    if (root != NULL)
+    {
+        fprintf(file, "%d|%s|%d|%s\n", root->NRM, root->nama, root->umur, root->alamat);
+        saveToFile(root->left, file);
+        saveToFile(root->right, file);
+    }
+}
+
+// Fungsi memuat data
+struct Pasien *loadFromFile(FILE *file)
+{
+    struct Pasien *root = NULL;
+    char line[200];
+
+    while (fgets(line, sizeof(line), file))
+    {
+        int NRM, umur;
+        char nama[50], alamat[100];
+
+        scanf(line, "%d|%49[^|]|%d|%99[^]", &NRM, nama, &umur, alamat);
+        root = insertAVL(root, NRM, nama, umur, alamat);
+    }
+
+    return root;
+}
+
 // Fungsi menampilkan data pasien
 void displayPasien(struct Pasien *root)
 {
@@ -241,7 +270,16 @@ void displayPasien(struct Pasien *root)
 // Fungsi utama
 int main()
 {
+
     struct Pasien *root = NULL;
+    FILE *file;
+
+    file = fopen("pasien.txt", "r");
+    if (file != NULL)
+    {
+        root = loadFromFile(file);
+        fclose(file);
+    }
 
     int choice, NRM, umur, treeChoice;
     char nama[50], alamat[100];
@@ -347,7 +385,13 @@ int main()
             break;
 
         case 5:
-            printf("Keluar dari program.\n");
+            printf("Menyimpan data & Keluar dari program..\n");
+            file = fopen("pasien.txt", "w");
+            if (file != NULL)
+            {
+                saveToFile(root, file);
+                fclose(file);
+            }
             break;
 
         default:

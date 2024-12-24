@@ -1,0 +1,13 @@
+1001|Chelvin|20|Citraland gang Langgar
+1002|Devinka|20|kedungturi
+1003|Wati|23|ngelom
+1004|Siti Rokaya|24|sepanjang
+1005|Sutikno|39|mangunan
+1006|Sukamto|54|megare
+1007|Fitri|28|tawangsari
+1008|Budi|58|kalijaten
+1009|Supriyadi|45|ketegan
+1010|Sukini|65|bebekan
+1012|Icha|19|Wonocolo
+1011|Olivia|19|Wonocolo
+1013|Yanto|45|Ngelom

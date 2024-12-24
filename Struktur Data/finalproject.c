@@ -282,10 +282,26 @@ int main()
     printf("Pilihan :");
     scanf("%d", &treeChoice);
 
+    // Data awal
+    int NRMList[] = {1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010};
+    char namaList[][50] = {"Chelvin", "Devinka", "Wati", "Siti Rokaya", "Sutikno", "Sukamto", "Fitri", "Budi", "Supriyadi", "Eva"};
+    int umurList[] = {20, 20, 23, 30, 39, 54, 28, 65, 45, 25};
+    char alamatList[][100] = {"Gempol RT 02", "Balas Klumprik", "Pondok Maritim Blok CL13", "Alamuda Blok AA12", "Sumberan", "Karang Klumprik", "Pondok Manggala Blok B3", "Kemilau Griyaku Blok C1", "Prima Kebraon 7", "Grand Harvest Arcadia"};
+
+    for (int i = 0; i < 10; i++)
+    {
+        if (treeChoice == 1)
+            root = insertBST(root, NRMList[i], namaList[i], umurList[i], alamatList[i]);
+        else
+            root = insertAVL(root, NRMList[i], namaList[i], umurList[i], alamatList[i]);
+    }
+
+    printf("\nData awal berhasil dimasukkan ke sistem!\n");
+
     do
     {
 
-        printf("Menu\n");
+        printf("\nMenu :\n");
         printf("1. Tambah Pasien\n");
         printf("2. Tampilkan Pasien\n");
         printf("3. Cari Pasien\n");
